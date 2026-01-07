@@ -20,7 +20,8 @@ async def jogar(posicao):
 
     # Turno do Robô (O)
     Element("status").element.innerText = "Robô pensando..."
-    await asyncio.sleep(0.5) # Pequena pausa para parecer real
+    await asyncio.sleep(0.5) # Pausa para o robô "pensar"
+    
     jogada_do_robo()
     verificar_fim_de_jogo()
 
