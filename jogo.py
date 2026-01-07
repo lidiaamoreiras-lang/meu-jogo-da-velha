@@ -1,27 +1,23 @@
 import random
-import asyncio
 from pyscript import Element
 
 tabuleiro = [""] * 9
 jogo_ativo = True
 
-async def jogar(posicao):
+def jogar(posicao):
     global jogo_ativo
     
     # Se o lugar estiver ocupado ou o jogo acabou, não faz nada
     if tabuleiro[posicao] != "" or not jogo_ativo:
         return
     
-    # Jogada do Usuário (X)
+    # Sua jogada (X)
     marcar_jogada(posicao, "X")
     
     if verificar_fim_de_jogo():
         return
 
-    # Turno do Robô (O)
-    Element("status").element.innerText = "Robô pensando..."
-    await asyncio.sleep(0.5) # Pausa para o robô "pensar"
-    
+    # Jogada do Robô (O) imediata
     jogada_do_robo()
     verificar_fim_de_jogo()
 
@@ -30,18 +26,16 @@ def marcar_jogada(posicao, player):
     Element(f"q{posicao}").element.innerText = player
 
 def jogada_do_robo():
-    # O robô procura todos os espaços vazios
     vazios = [i for i, x in enumerate(tabuleiro) if x == ""]
     if vazios and jogo_ativo:
         escolha = random.choice(vazios)
         marcar_jogada(escolha, "O")
-        Element("status").element.innerText = "Sua vez (X)"
 
 def verificar_vencedor():
     vitorias = [
-        [0, 1, 2], [3, 4, 5], [6, 7, 8], # Linhas
-        [0, 3, 6], [1, 4, 7], [2, 5, 8], # Colunas
-        [0, 4, 8], [2, 4, 6]             # Diagonais
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
     ]
     for v in vitorias:
         if tabuleiro[v[0]] == tabuleiro[v[1]] == tabuleiro[v[2]] != "":
