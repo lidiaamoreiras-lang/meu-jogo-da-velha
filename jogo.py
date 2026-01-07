@@ -1,35 +1,42 @@
+import random
+import asyncio
 from pyscript import Element
 
-turno = "X"
 tabuleiro = [""] * 9
 jogo_ativo = True
 
-def jogar(posicao):
-    global turno, jogo_ativo
+async def jogar(posicao):
+    global jogo_ativo
     
-    # Se o quadrado já estiver ocupado ou o jogo acabou, não faz nada
+    # Se o lugar estiver ocupado ou o jogo acabou, não faz nada
     if tabuleiro[posicao] != "" or not jogo_ativo:
         return
     
-    # Marca a jogada no tabuleiro e na tela
-    tabuleiro[posicao] = turno
-    botao = Element(str(posicao)).element
-    botao.innerText = turno
+    # Jogada do Usuário (X)
+    marcar_jogada(posicao, "X")
     
-    # Verifica se houve vencedor
-    if verificar_vencedor():
-        Element("status").element.innerText = f"🎉 Vitória do {turno}!"
-        jogo_ativo = False
-    elif "" not in tabuleiro:
-        Element("status").element.innerText = "🤝 Empate!"
-        jogo_ativo = False
-    else:
-        # Muda o turno
-        turno = "O" if turno == "X" else "X"
-        Element("status").element.innerText = f"Vez do: {turno}"
+    if verificar_fim_de_jogo():
+        return
+
+    # Turno do Robô (O)
+    Element("status").element.innerText = "Robô pensando..."
+    await asyncio.sleep(0.5) # Pequena pausa para parecer real
+    jogada_do_robo()
+    verificar_fim_de_jogo()
+
+def marcar_jogada(posicao, player):
+    tabuleiro[posicao] = player
+    Element(f"q{posicao}").element.innerText = player
+
+def jogada_do_robo():
+    # O robô procura todos os espaços vazios
+    vazios = [i for i, x in enumerate(tabuleiro) if x == ""]
+    if vazios and jogo_ativo:
+        escolha = random.choice(vazios)
+        marcar_jogada(escolha, "O")
+        Element("status").element.innerText = "Sua vez (X)"
 
 def verificar_vencedor():
-    # Combinações para ganhar (linhas, colunas e diagonais)
     vitorias = [
         [0, 1, 2], [3, 4, 5], [6, 7, 8], # Linhas
         [0, 3, 6], [1, 4, 7], [2, 5, 8], # Colunas
@@ -37,14 +44,28 @@ def verificar_vencedor():
     ]
     for v in vitorias:
         if tabuleiro[v[0]] == tabuleiro[v[1]] == tabuleiro[v[2]] != "":
-            return True
+            return tabuleiro[v[0]]
+    return None
+
+def verificar_fim_de_jogo():
+    global jogo_ativo
+    vencedor = verificar_vencedor()
+    status = Element("status").element
+    
+    if vencedor:
+        status.innerText = f"🎉 Vitória do {vencedor}!"
+        jogo_ativo = False
+        return True
+    elif "" not in tabuleiro:
+        status.innerText = "🤝 Empate!"
+        jogo_ativo = False
+        return True
     return False
 
 def reiniciar():
-    global turno, tabuleiro, jogo_ativo
-    turno = "X"
+    global tabuleiro, jogo_ativo
     tabuleiro = [""] * 9
     jogo_ativo = True
-    Element("status").element.innerText = "Vez do: X"
+    Element("status").element.innerText = "Sua vez (X)"
     for i in range(9):
-        Element(str(i)).element.innerText = ""
+        Element(f"q{i}").element.innerText = ""
